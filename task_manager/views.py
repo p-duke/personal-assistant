@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -8,7 +8,57 @@ from .models import Task
 from .serializers import TaskSerializer
 from . import services
 
-# Create your views here.
+def complete_task_view(request, task_id):
+    if request.method == "POST":
+        # Call service layer to mark the task complete
+        services.complete_task(task_id)
+    # Redirect back to dashboard regardless
+    return redirect("dashboard")
+
+def create_task_view(request):
+    if request.method == "POST":
+        # Extract form data
+        title = request.POST.get("title", "").strip()
+        priority = request.POST.get("priority", "normal")
+        due_date = request.POST.get("due_date") or None
+        estimated_duration = request.POST.get("estimated_duration") or None
+
+        if estimated_duration:
+            estimated_duration = int(estimated_duration)
+
+        # Call service layer to create the task
+        services.create_task(
+            title=title,
+            priority=priority,
+            due_date=due_date,
+            estimated_duration=estimated_duration
+        )
+
+        # Redirect to dashboard after creation
+        return redirect("dashboard")
+
+    # GET request → show empty form
+    return render(request, "task_manager/create_task.html")
+
+def dashboard_view(request):
+    # Get open tasks
+    open_tasks = services.list_tasks(status="open")
+
+    # Get overdue tasks
+    overdue_tasks = services.list_tasks(status="open", overdue=True)
+
+    # Get completed today
+    review = services.daily_review()
+    completed_today = review["completed_today"]
+
+    context = {
+        "open_tasks": open_tasks,
+        "overdue_tasks": overdue_tasks,
+        "completed_today": completed_today,
+    }
+
+    return render(request, "task_manager/dashboard.html", context)
+
 class TaskViewSet(viewsets.ModelViewSet):
     """
     Handles CRUD for Tasks.

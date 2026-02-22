@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Task</title>
+</head>
+<body>
+
+<h1>Create New Task</h1>
+
+<form method="post">
+    {% csrf_token %}
+
+    <!-- Task Title -->
+    <label for="title">Title:</label><br>
+    <input type="text" name="title" id="title" required><br><br>
+
+    <!-- Priority -->
+    <label for="priority">Priority:</label><br>
+    <select name="priority" id="priority">
+        <option value="low">Low</option>
+        <option value="normal" selected>Normal</option>
+        <option value="high">High</option>
+    </select><br><br>
+
+    <!-- Due Date -->
+    <label for="due_date">Due Date:</label><br>
+    <input type="datetime-local" name="due_date" id="due_date"><br><br>
+
+    <!-- Estimated Duration -->
+    <label for="estimated_duration">Estimated Duration (minutes):</label><br>
+    <input type="number" name="estimated_duration" id="estimated_duration" min="1"><br><br>
+
+    <!-- Submit -->
+    <button type="submit">Create Task</button>
+</form>
+
+<p>
+    <a href="{% url 'dashboard' %}">← Back to Dashboard</a>
+</p>
+
+</body>
+</html>

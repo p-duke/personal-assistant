@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Task Dashboard</title>
+</head>
+<body>
+
+    <h1>Task Dashboard</h1>
+
+    <p>
+        <a href="{% url 'create_task' %}">➕ Create New Task</a>
+    </p>
+
+    <hr>
+
+    <h2>Open Tasks</h2>
+
+    {% if open_tasks %}
+        <ul>
+            {% for task in open_tasks %}
+                <li>
+                    <strong>{{ task.title }}</strong>
+                    <br>
+                    Priority: {{ task.priority }}
+                    <br>
+                    Due: {{ task.due_date|default:"No due date" }}
+                    <br><br>
+
+                    <form method="post" action="{% url 'complete_task' task.id %}">
+                        {% csrf_token %}
+                        <button type="submit">Mark Complete</button>
+                    </form>
+
+                </li>
+                <hr>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No open tasks 🎉</p>
+    {% endif %}
+
+    <hr>
+
+    <h2>Overdue Tasks</h2>
+
+    {% if overdue_tasks %}
+        <ul>
+            {% for task in overdue_tasks %}
+                <li>
+                    <strong>{{ task.title }}</strong>
+                    <br>
+                    Priority: {{ task.priority }}
+                    <br>
+                    Due: {{ task.due_date }}
+                </li>
+                <hr>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No overdue tasks 👍</p>
+    {% endif %}
+
+    <hr>
+
+    <h2>Completed Today</h2>
+
+    {% if completed_today %}
+        <ul>
+            {% for task in completed_today %}
+                <li>
+                    <strong>{{ task.title }}</strong>
+                    <br>
+                    Completed at: {{ task.updated_at }}
+                </li>
+                <hr>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No tasks completed today.</p>
+    {% endif %}
+
+</body>
+</html>
