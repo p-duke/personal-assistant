@@ -1,12 +1,12 @@
-from django.shortcuts import render, redirect
-
+from django.shortcuts import redirect, render
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from . import services
 from .models import Task
 from .serializers import TaskSerializer
-from . import services
+
 
 def complete_task_view(request, task_id):
     if request.method == "POST":
@@ -14,6 +14,7 @@ def complete_task_view(request, task_id):
         services.complete_task(task_id)
     # Redirect back to dashboard regardless
     return redirect("dashboard")
+
 
 def create_task_view(request):
     if request.method == "POST":
@@ -31,7 +32,7 @@ def create_task_view(request):
             title=title,
             priority=priority,
             due_date=due_date,
-            estimated_duration=estimated_duration
+            estimated_duration=estimated_duration,
         )
 
         # Redirect to dashboard after creation
@@ -39,6 +40,7 @@ def create_task_view(request):
 
     # GET request → show empty form
     return render(request, "task_manager/create_task.html")
+
 
 def dashboard_view(request):
     # Get open tasks
@@ -59,11 +61,13 @@ def dashboard_view(request):
 
     return render(request, "task_manager/dashboard.html", context)
 
+
 class TaskViewSet(viewsets.ModelViewSet):
     """
     Handles CRUD for Tasks.
     Only orchestrates HTTP → services layer.
     """
+
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
 
@@ -91,7 +95,7 @@ class TaskViewSet(viewsets.ModelViewSet):
             title=validated_data["title"],
             priority=validated_data["priority"],
             due_date=validated_data["due_date"],
-            estimated_duration=validated_data["estimated_duration"]
+            estimated_duration=validated_data["estimated_duration"],
         )
         serializer = self.get_serializer(task)
         return Response(serializer.data, status=201)
@@ -113,8 +117,14 @@ class TaskViewSet(viewsets.ModelViewSet):
         Returns completed today, open, and overdue tasks
         """
         review = services.daily_review()
-        return Response({
-            "completed_today": TaskSerializer(review["completed_today"], many=True).data,
-            "open_tasks": TaskSerializer(review["open_tasks"], many=True).data,
-            "overdue_tasks": TaskSerializer(review["overdue_tasks"], many=True).data
-        })
+        return Response(
+            {
+                "completed_today": TaskSerializer(
+                    review["completed_today"], many=True
+                ).data,
+                "open_tasks": TaskSerializer(review["open_tasks"], many=True).data,
+                "overdue_tasks": TaskSerializer(
+                    review["overdue_tasks"], many=True
+                ).data,
+            }
+        )
