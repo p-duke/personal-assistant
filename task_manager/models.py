@@ -32,7 +32,7 @@ class Task(models.Model):
         ordering = ["status", "due_date", "-priority", "created_at"]
 
     def mark_complete(self):
-        self.status = Status.COMPLETE
+        self.status = Task.Status.COMPLETE
         self.completed_at = timezone.now()
         self.save(update_fields=["status", "completed_at", "updated_at"])
 

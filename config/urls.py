@@ -22,4 +22,5 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     # delegate everything to the task_manager app
     path("", include("task_manager.urls")),
+    path("api/", include("chat.urls")),
 ]
