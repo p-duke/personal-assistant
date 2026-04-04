@@ -18,9 +18,15 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
+from django.contrib import admin
+from django.urls import path, include
+
 urlpatterns = [
     path("admin/", admin.site.urls),
-    # delegate everything to the task_manager app
+    # Main task manager views (templates/forms)
     path("", include("task_manager.urls")),
-    path("api/", include("chat.urls")),
+    # Chat API routes (DRF endpoints only)
+    path("api/", include("chat.api_urls")),
+    # Chat view/routes (template-based interfaces)
+    path("chat/", include("chat.urls")),
 ]
