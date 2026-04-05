@@ -87,7 +87,7 @@
 <body>
     <div class="form-container">
         <h1>✨ Create Task with AI</h1>
-        
+
         {% if error_text %}
             <div class="result error">
                 <h3>Error</h3>
@@ -95,6 +95,18 @@
                 <p>Tell your task in natural language (e.g., "Review taxes on next Friday after 2pm") and click Submit.</p>
             </div>
         {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            <label for="message">Describe your task in natural language:</label>
+            <textarea 
+                name="user_message" 
+                id="message" 
+                placeholder="E.g., Review my taxes on next Friday at 2pm, or Call mom tomorrow with high priority..."
+                required
+            ></textarea>
+            <button type="submit">Send to AI Assistant</button>
+        </form>
 
         {% if created %}
             <div class="result success">
@@ -121,18 +133,6 @@
                 </table>
             </div>
         {% endif %}
-
-        <form method="post">
-            {% csrf_token %}
-            <label for="message">Describe your task in natural language:</label>
-            <textarea 
-                name="user_message" 
-                id="message" 
-                placeholder="E.g., Review my taxes on next Friday at 2pm, or Call mom tomorrow with high priority..."
-                required
-            ></textarea>
-            <button type="submit">Send to AI Assistant</button>
-        </form>
     </div>
     <a href="{% url 'dashboard' %}">← Back to Dashboard</a>
 </body>

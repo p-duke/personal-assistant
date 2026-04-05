@@ -5,8 +5,8 @@ This includes the create_task view that loads our AI-powered chat interface.
 
 from django.urls import path
 
-from .views import create_task_ai
+from .views import chat
 
 urlpatterns = [
-    path("create_task/", create_task_ai, name="create_task"),
+    path("", chat, name="chat"),
 ]
