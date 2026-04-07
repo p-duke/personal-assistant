@@ -36,13 +36,31 @@ Intent-specific rules:
   }}
 
 2. complete_task:
-  - Fields:
-    - task_identifier: string (can be title fragment, description, or ID)
-  - Example:
-  {{
-    "intent": "complete_task",
-    "task_identifier": "call mom"
-  }}
+   - Fields (return as nested object under "task" key):
+     - task_id: integer (if user mentions "#5" or exact ID number) OR null
+     - task_identifier: string (title fragment for substring search but MUST be a single word) OR null
+   - Priority: Extract numeric ID if user says "#3", "item #7", etc. Otherwise extract title description.
+   - If the user describes an activity they already did (especially with past tense verbs like "played", "went", "finished", "did"), assume they are marking a task as complete.
+   - Even if phrasing is indirect (e.g., "yesterday I played soccer"), interpret it as completing a matching task if one likely exists.
+   - Example A (numeric ID):
+     User says: "mark #9 done"
+     {{
+       "intent": "complete_task",
+       "task": {{
+         "task_id": 9,
+         "task_identifier": null
+       }}
+     }}
+   
+   - Example B (title fragment):
+     User says: "finish the laundry task"
+     {{
+       "intent": "complete_task", 
+       "task": {{
+         "task_id": null,
+         "task_identifier": "laundry"
+       }}
+     }}
 
 3. list_tasks:
   - Fields:

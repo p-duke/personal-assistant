@@ -19,7 +19,7 @@
         <ul>
             {% for task in open_tasks %}
                 <li>
-                    <strong>{{ task.title }}</strong>
+                    <strong>{{ task.id }} | {{ task.title }}</strong>
                     <br>
                     Priority: {{ task.priority }}
                     <br>

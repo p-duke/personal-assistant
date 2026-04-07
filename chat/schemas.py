@@ -11,7 +11,8 @@ class CreateTaskSchema(BaseModel):
     status: str = "open"
 
 class CompleteTaskSchema(BaseModel):
-    task_id: int
+    task_id: Optional[int] = None
+    task_identifier: Optional[str] = None
 
 class ChatResponseSchema(BaseModel):
     intent: str

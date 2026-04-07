@@ -5,10 +5,27 @@
     <style>
         body {
             font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f5f5;
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 300px;
+            background: white;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            height: 100vh;
+            position: fixed;
+        }
+        .main-content {
+            flex: 1;
+            margin-left: 300px;
+            padding: 20px;
             max-width: 700px;
             margin: 50px auto;
-            padding: 20px;
-            background: #f5f5f5;
         }
         h1 {
             color: #333;
@@ -82,58 +99,207 @@
             margin-top: 15px;
         }
         a:hover { text-decoration: underline; }
+        .dashboard-section {
+            margin-bottom: 20px;
+        }
+        .dashboard-section h2 {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+            margin-top: 0;
+        }
+        .dashboard-section ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .dashboard-section li {
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .dashboard-section li:last-child {
+            border-bottom: none;
+        }
+        .task-id {
+            font-weight: bold;
+        }
+        .task-priority {
+            text-transform: capitalize;
+        }
+        .mark-complete-form {
+            display: inline;
+        }
+        .mark-complete-btn {
+            padding: 5px 10px;
+            font-size: 12px;
+            margin-top: 5px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .mark-complete-btn:hover {
+            background: #0056b3;
+        }
+        .btn-primary {
+            display: inline-block;
+            padding: 12px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            margin-top: 15px;
+            width: auto;
+        }
+        .btn-primary:hover {
+            background: #0056b3;
+        }
     </style>
 </head>
 <body>
-    <div class="form-container">
-        <h1>✨ Create Task with AI</h1>
+    <div class="sidebar">
+        <h1>Task Dashboard</h1>
+        <p><a href="{% url 'create_task' %}" class="btn-primary">Create New Task</a></p>
+        
+        <div class="dashboard-section">
+            <h2>Open Tasks</h2>
+            {% if open_tasks %}
+                <ul>
+                    {% for task in open_tasks %}
+                        <li>
+                            <span class="task-id">{{ task.id }} | </span>
+                            <strong>{{ task.title }}</strong>
+                            <br>
+                            Priority: <span class="task-priority">{{ task.priority }}</span>
+                            <br>
+                            Due: {{ task.due_date|default:"No due date" }}
+                            <br>
+                            <form method="post" action="{% url 'complete_task' task.id %}" class="mark-complete-form">
+                                {% csrf_token %}
+                                <button type="submit" class="mark-complete-btn">Mark Complete</button>
+                            </form>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No open tasks 🎉</p>
+            {% endif %}
+        </div>
 
-        {% if error_text %}
-            <div class="result error">
-                <h3>Error</h3>
-                <pre>{{ error_text }}</pre>
-                <p>Tell your task in natural language (e.g., "Review taxes on next Friday after 2pm") and click Submit.</p>
-            </div>
-        {% endif %}
+        <div class="dashboard-section">
+            <h2>Overdue Tasks</h2>
+            {% if overdue_tasks %}
+                <ul>
+                    {% for task in overdue_tasks %}
+                        <li>
+                            <strong>{{ task.title }}</strong>
+                            <br>
+                            Priority: <span class="task-priority">{{ task.priority }}</span>
+                            <br>
+                            Due: {{ task.due_date }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No overdue tasks 👍</p>
+            {% endif %}
+        </div>
 
-        <form method="post">
-            {% csrf_token %}
-            <label for="message">Describe your task in natural language:</label>
-            <textarea 
-                name="user_message" 
-                id="message" 
-                placeholder="E.g., Review my taxes on next Friday at 2pm, or Call mom tomorrow with high priority..."
-                required
-            ></textarea>
-            <button type="submit">Send to AI Assistant</button>
-        </form>
-
-        {% if created %}
-            <div class="result success">
-                <h3>✅ Task Created!</h3>
-                <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
-                    <tr>
-                        <td class="field-label">Task ID:</td>
-                        <td>{{ task_id }}</td>
-                    </tr>
-                    <tr style="border-top: 1px solid #ddd;">
-                        <td class="field-label">Title:</td>
-                        <td>{{ title }}</td>
-                    </tr>
-                    <tr style="border-top: 1px solid #ddd;">
-                        <td class="field-label">Priority:</td>
-                        <td style="text-transform: capitalize;">{{ priority }}</td>
-                    </tr>
-                    {% if due_date %}
-                    <tr style="border-top: 1px solid #ddd;">
-                        <td class="field-label">Due Date:</td>
-                        <td>{{ due_date|date:"Y-m-d H:i" }}</td>
-                    </tr>
-                    {% endif %}
-                </table>
-            </div>
-        {% endif %}
+        <div class="dashboard-section">
+            <h2>Completed Today</h2>
+            {% if completed_today %}
+                <ul>
+                    {% for task in completed_today %}
+                        <li>
+                            <strong>{{ task.title }}</strong>
+                            <br>
+                            Completed at: {{ task.updated_at }}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No tasks completed today.</p>
+            {% endif %}
+        </div>
     </div>
-    <a href="{% url 'dashboard' %}">← Back to Dashboard</a>
+
+    <div class="main-content">
+        <div class="form-container">
+            <h1>✨ Create Task with AI</h1>
+
+            {% if error_text %}
+                <div class="result error">
+                    <h3>Error</h3>
+                    <pre>{{ error_text }}</pre>
+                    <p>Tell your task in natural language (e.g., "Review taxes on next Friday after 2pm") and click Submit.</p>
+                </div>
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+                <label for="message">Describe your task in natural language:</label>
+                <textarea 
+                    name="user_message" 
+                    id="message" 
+                    placeholder="E.g., Review my taxes on next Friday at 2pm, or Call mom tomorrow with high priority..."
+                    required
+                ></textarea>
+                <button type="submit">Send to AI Assistant</button>
+            </form>
+
+            {% if completed %}
+                <div class="result success">
+                    <h3>✅ Task Completed!</h3>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                        <tr>
+                            <td class="field-label">Task ID:</td>
+                            <td>{{ task_id }}</td>
+                        </tr>
+                        <tr style="border-top: 1px solid #ddd;">
+                            <td class="field-label">Title:</td>
+                            <td>{{ title }}</td>
+                        </tr>
+                        <tr style="border-top: 1px solid #ddd;">
+                            <td class="field-label">Priority:</td>
+                            <td style="text-transform: capitalize;">{{ priority }}</td>
+                        </tr>
+                        {% if due_date %}
+                        <tr style="border-top: 1px solid #ddd;">
+                            <td class="field-label">Due Date:</td>
+                            <td>{{ due_date|date:"Y-m-d H:i" }}</td>
+                        </tr>
+                        {% endif %}
+                    </table>
+                </div>
+            {% endif %}
+            {% if created %}
+                <div class="result success">
+                    <h3>✅ Task Created!</h3>
+                    <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                        <tr>
+                            <td class="field-label">Task ID:</td>
+                            <td>{{ task_id }}</td>
+                        </tr>
+                        <tr style="border-top: 1px solid #ddd;">
+                            <td class="field-label">Title:</td>
+                            <td>{{ title }}</td>
+                        </tr>
+                        <tr style="border-top: 1px solid #ddd;">
+                            <td class="field-label">Priority:</td>
+                            <td style="text-transform: capitalize;">{{ priority }}</td>
+                        </tr>
+                        {% if due_date %}
+                        <tr style="border-top: 1px solid #ddd;">
+                            <td class="field-label">Due Date:</td>
+                            <td>{{ due_date|date:"Y-m-d H:i" }}</td>
+                        </tr>
+                        {% endif %}
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    </div>
 </body>
 </html>
