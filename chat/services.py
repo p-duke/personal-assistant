@@ -4,56 +4,86 @@ from pathlib import Path
 from ollama import Client
 
 from chat.schemas import ChatResponseSchema
-from task_manager.services import create_task, complete_task
 from task_manager.models import Task
+from task_manager.services import complete_task, create_task, daily_review, list_tasks, suggest_focus
 
 
-def handle_intent(parsed_result):
-    context = {}
+def handle_intent(parsed_result) -> dict:
+    intent = parsed_result.intent
 
-    if parsed_result.intent == "create_task":
+    if intent == 'create_task':
         new_task = create_task(
             title=parsed_result.task.title,
             priority=parsed_result.task.priority,
             due_date=parsed_result.task.due_date,
             estimated_duration=parsed_result.task.estimated_duration,
         )
-
-        context = {
-            "created": True,
-            "task_id": str(new_task.id),
-            "title": new_task.title,
-            "priority": new_task.priority,
-            "due_date": new_task.due_date,
-            "duration": new_task.estimated_duration or "N/A",
+        return {
+            'created': True,
+            'task_id': str(new_task.id),
+            'title': new_task.title,
+            'priority': new_task.priority,
+            'due_date': new_task.due_date,
+            'duration': new_task.estimated_duration or 'N/A',
         }
 
-    if parsed_result.intent == "complete_task":
+    if intent == 'complete_task':
         task_data = parsed_result.task
-        print("complete task intent", parsed_result)
+        task = None
 
         if task_data and task_data.task_id:
             task = complete_task(task_data.task_id)
-            context = {
-                "completed": True,
-                "task_id": str(task.id),
-                "title": task.title,
-                "priority": task.priority,
-                "due_date": task.due_date,
-            }
-        if task_data and task_data.task_identifier:
-            task = Task.objects.filter(title__icontains=task_data.task_identifier).first()
-            complete_task(task.id)
-            context = {
-                "completed": True,
-                "task_id": str(task.id),
-                "title": task.title,
-                "priority": task.priority,
-                "due_date": task.due_date,
+        elif task_data and task_data.task_identifier:
+            matched = Task.objects.filter(
+                title__icontains=task_data.task_identifier,
+                status=Task.Status.OPEN,
+            ).first()
+            if matched:
+                task = complete_task(matched.id)
+            else:
+                return {'error_text': f"No open task found matching '{task_data.task_identifier}'"}
+
+        if task:
+            return {
+                'completed': True,
+                'task_id': str(task.id),
+                'title': task.title,
+                'priority': task.priority,
+                'due_date': task.due_date,
             }
 
-    print(f"handle_intent context: {context}")
-    return context
+    if intent == 'list_tasks':
+        tasks = list(list_tasks(status=parsed_result.status))
+        return {
+            'listed': True,
+            'tasks': tasks,
+            'filter_status': parsed_result.status or 'all',
+        }
+
+    if intent == 'daily_review':
+        review = daily_review()
+        return {
+            'review': True,
+            'completed_today': list(review['completed_today']),
+            'open_tasks': list(review['open_tasks']),
+            'overdue_tasks': list(review['overdue_tasks']),
+        }
+
+    if intent == 'suggest_focus':
+        result = suggest_focus(
+            available_minutes=parsed_result.available_minutes,
+            energy_level=parsed_result.energy_level,
+            location=parsed_result.location,
+        )
+        return {
+            'focus': True,
+            'suggested_tasks': result['tasks'],
+            'available_minutes': result['available_minutes'],
+            'energy_level': result['energy_level'],
+        }
+
+    return {}
+
 
 def parse_message(message: str) -> ChatResponseSchema:
     prompt_template = load_prompt("detect_intent_extract_data.txt")

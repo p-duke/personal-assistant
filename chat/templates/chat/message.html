@@ -251,52 +251,91 @@
 
             {% if completed %}
                 <div class="result success">
-                    <h3>✅ Task Completed!</h3>
+                    <h3>Task Completed</h3>
                     <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
-                        <tr>
-                            <td class="field-label">Task ID:</td>
-                            <td>{{ task_id }}</td>
-                        </tr>
-                        <tr style="border-top: 1px solid #ddd;">
-                            <td class="field-label">Title:</td>
-                            <td>{{ title }}</td>
-                        </tr>
-                        <tr style="border-top: 1px solid #ddd;">
-                            <td class="field-label">Priority:</td>
-                            <td style="text-transform: capitalize;">{{ priority }}</td>
-                        </tr>
+                        <tr><td class="field-label">Task ID:</td><td>{{ task_id }}</td></tr>
+                        <tr style="border-top: 1px solid #ddd;"><td class="field-label">Title:</td><td>{{ title }}</td></tr>
+                        <tr style="border-top: 1px solid #ddd;"><td class="field-label">Priority:</td><td style="text-transform: capitalize;">{{ priority }}</td></tr>
                         {% if due_date %}
-                        <tr style="border-top: 1px solid #ddd;">
-                            <td class="field-label">Due Date:</td>
-                            <td>{{ due_date|date:"Y-m-d H:i" }}</td>
-                        </tr>
+                        <tr style="border-top: 1px solid #ddd;"><td class="field-label">Due Date:</td><td>{{ due_date|date:"Y-m-d" }}</td></tr>
                         {% endif %}
                     </table>
                 </div>
             {% endif %}
+
             {% if created %}
                 <div class="result success">
-                    <h3>✅ Task Created!</h3>
+                    <h3>Task Created</h3>
                     <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
-                        <tr>
-                            <td class="field-label">Task ID:</td>
-                            <td>{{ task_id }}</td>
-                        </tr>
-                        <tr style="border-top: 1px solid #ddd;">
-                            <td class="field-label">Title:</td>
-                            <td>{{ title }}</td>
-                        </tr>
-                        <tr style="border-top: 1px solid #ddd;">
-                            <td class="field-label">Priority:</td>
-                            <td style="text-transform: capitalize;">{{ priority }}</td>
-                        </tr>
+                        <tr><td class="field-label">Task ID:</td><td>{{ task_id }}</td></tr>
+                        <tr style="border-top: 1px solid #ddd;"><td class="field-label">Title:</td><td>{{ title }}</td></tr>
+                        <tr style="border-top: 1px solid #ddd;"><td class="field-label">Priority:</td><td style="text-transform: capitalize;">{{ priority }}</td></tr>
                         {% if due_date %}
-                        <tr style="border-top: 1px solid #ddd;">
-                            <td class="field-label">Due Date:</td>
-                            <td>{{ due_date|date:"Y-m-d H:i" }}</td>
-                        </tr>
+                        <tr style="border-top: 1px solid #ddd;"><td class="field-label">Due Date:</td><td>{{ due_date|date:"Y-m-d" }}</td></tr>
+                        {% endif %}
+                        {% if duration %}
+                        <tr style="border-top: 1px solid #ddd;"><td class="field-label">Duration:</td><td>{{ duration }} min</td></tr>
                         {% endif %}
                     </table>
+                </div>
+            {% endif %}
+
+            {% if listed %}
+                <div class="result success">
+                    <h3>Tasks — {{ filter_status|capfirst }}</h3>
+                    {% if tasks %}
+                        <ul style="padding-left: 0; list-style: none;">
+                            {% for task in tasks %}
+                            <li style="padding: 8px 0; border-bottom: 1px solid #c3e6cb;">
+                                <span class="task-id">#{{ task.id }}</span>
+                                <strong>{{ task.title }}</strong>
+                                — <span style="text-transform: capitalize;">{{ task.priority }}</span>
+                                {% if task.due_date %} | Due: {{ task.due_date|date:"Y-m-d" }}{% endif %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>No tasks found.</p>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            {% if review %}
+                <div class="result success">
+                    <h3>Daily Review</h3>
+                    <p><strong>Completed today:</strong> {{ completed_today|length }}</p>
+                    {% if completed_today %}
+                        <ul style="padding-left: 16px;">
+                            {% for task in completed_today %}<li>{{ task.title }}</li>{% endfor %}
+                        </ul>
+                    {% endif %}
+                    <p><strong>Open tasks:</strong> {{ open_tasks|length }}</p>
+                    <p><strong>Overdue:</strong> {{ overdue_tasks|length }}
+                        {% if overdue_tasks %}
+                        — {% for task in overdue_tasks %}{{ task.title }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                        {% endif %}
+                    </p>
+                </div>
+            {% endif %}
+
+            {% if focus %}
+                <div class="result success">
+                    <h3>Suggested Focus</h3>
+                    {% if available_minutes %}<p>Fitting within <strong>{{ available_minutes }} min</strong>{% if energy_level %} · energy: {{ energy_level }}{% endif %}</p>{% endif %}
+                    {% if suggested_tasks %}
+                        <ol>
+                            {% for task in suggested_tasks %}
+                            <li style="padding: 6px 0;">
+                                <strong>{{ task.title }}</strong>
+                                — <span style="text-transform: capitalize;">{{ task.priority }}</span>
+                                {% if task.estimated_duration %} · {{ task.estimated_duration }} min{% endif %}
+                                {% if task.due_date %} · Due {{ task.due_date|date:"Y-m-d" }}{% endif %}
+                            </li>
+                            {% endfor %}
+                        </ol>
+                    {% else %}
+                        <p>No open tasks to suggest.</p>
+                    {% endif %}
                 </div>
             {% endif %}
         </div>
